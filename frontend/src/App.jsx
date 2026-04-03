@@ -4,6 +4,8 @@ const API = "https://janseva-backend.onrender.com"
 
 export default function App() {
   const [page, setPage] = useState("dashboard")
+  const [user, setUser] = useState(null)
+  const [token, setToken] = useState(null)
 
   return (
     <div style={{ fontFamily: "sans-serif", minHeight: "100vh", background: "#FDF8F0" }}>
@@ -18,10 +20,9 @@ export default function App() {
           </div>
         </div>
         <nav style={{ display: "flex", gap: "4px" }}>
-          {["dashboard", "suggestions", "rti", "vision"].map(p => (
+          {["dashboard", "suggestions", "rti", "vision", "account"].map(p => (
             <button key={p} onClick={() => setPage(p)} style={{ padding: "7px 16px", borderRadius: "6px", border: "none", cursor: "pointer", background: page === p ? "rgba(255,107,26,0.2)" : "transparent", color: page === p ? "#FF6B1A" : "rgba(255,255,255,0.6)", fontWeight: "500", fontSize: "0.85rem", textTransform: "capitalize" }}>
-              {p === "rti" ? "File RTI" : p === "vision" ? "🏙 Urban AI" : p}
-            </button>
+            {p === "rti" ? "File RTI" : p === "vision" ? "🏙 Urban AI" : p === "account" ? (user ? "👤 " + user.full_name.split(" ")[0] : "Login") : p}               </button>
           ))}
         </nav>
       </header>
@@ -31,7 +32,7 @@ export default function App() {
         {page === "dashboard" && <Dashboard />}
         {page === "suggestions" && <Suggestions />}
         {page === "rti" && <RTI />}
-        {page === "vision" && <VisionAnalysis />}
+        {page === "account" && <Account user={user} token={token} setUser={setUser} setToken={setToken} setPage={setPage} />}
       </main>
     </div>
   )
@@ -440,6 +441,191 @@ function VisionAnalysis() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  )
+}
+function Account({ user, token, setUser, setToken, setPage }) {
+  const [mode, setMode] = useState(user ? "profile" : "login")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [fullName, setFullName] = useState("")
+  const [mobile, setMobile] = useState("")
+  const [district, setDistrict] = useState("Rohtak")
+  const [otp, setOtp] = useState("")
+  const [otpSent, setOtpSent] = useState(false)
+  const [realOtp, setRealOtp] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [loginMethod, setLoginMethod] = useState("email")
+
+  const login = async () => {
+    if (!email || !password) return setError("Please fill all fields")
+    setLoading(true); setError("")
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      })
+      const data = await res.json()
+      if (!res.ok) return setError(data.detail || "Login failed")
+      setUser(data.user); setToken(data.token)
+      localStorage.setItem("token", data.token)
+      setMode("profile")
+    } catch { setError("Could not connect to server") }
+    setLoading(false)
+  }
+
+  const register = async () => {
+    if (!fullName || !email || !mobile || !password) return setError("Please fill all fields")
+    setLoading(true); setError("")
+    try {
+      const res = await fetch(`${API}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name: fullName, email, mobile, password, district })
+      })
+      const data = await res.json()
+      if (!res.ok) return setError(data.detail || "Registration failed")
+      setUser(data.user); setToken(data.token)
+      localStorage.setItem("token", data.token)
+      setMode("profile")
+    } catch { setError("Could not connect to server") }
+    setLoading(false)
+  }
+
+  const sendOtp = async () => {
+    if (!mobile) return setError("Enter mobile number first")
+    setLoading(true)
+    try {
+      const res = await fetch(`${API}/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile })
+      })
+      const data = await res.json()
+      setRealOtp(data.otp)
+      setOtpSent(true)
+      setError(`OTP sent! (Demo OTP: ${data.otp})`)
+    } catch { setError("Could not send OTP") }
+    setLoading(false)
+  }
+
+  const logout = () => {
+    setUser(null); setToken(null)
+    localStorage.removeItem("token")
+    setMode("login")
+  }
+
+  const inp = { width: "100%", padding: "10px 14px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "1rem", fontFamily: "sans-serif" }
+  const btn = { width: "100%", padding: "11px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem", marginBottom: "8px" }
+
+  if (mode === "profile" && user) return (
+    <div style={{ maxWidth: "500px", margin: "0 auto" }}>
+      <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "2rem", textAlign: "center", marginBottom: "1rem" }}>
+        <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,#FF6B1A,#D4A017)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "2rem", color: "#fff", fontWeight: "700" }}>
+          {user.full_name[0].toUpperCase()}
+        </div>
+        <h2 style={{ fontSize: "1.3rem", fontWeight: "700", marginBottom: "4px" }}>{user.full_name}</h2>
+        <p style={{ color: "#6B7280", fontSize: "0.85rem" }}>Verified Citizen ✅</p>
+      </div>
+      <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem", marginBottom: "1rem" }}>
+        <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>Profile Details</h3>
+        {[
+          { label: "Email", value: user.email },
+          { label: "Mobile", value: user.mobile },
+          { label: "District", value: user.district },
+        ].map(item => (
+          <div key={item.label} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #F3F4F6" }}>
+            <span style={{ fontSize: "0.82rem", color: "#6B7280", fontWeight: "600" }}>{item.label}</span>
+            <span style={{ fontSize: "0.82rem", color: "#1F2937" }}>{item.value}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem", marginBottom: "1rem" }}>
+        <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>Your Activity</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+          <div style={{ background: "#FFF7ED", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
+            <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#FF6B1A" }}>0</div>
+            <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>Suggestions Filed</div>
+          </div>
+          <div style={{ background: "#F0FDF4", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
+            <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#16A34A" }}>0</div>
+            <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>RTIs Filed</div>
+          </div>
+        </div>
+      </div>
+      <button onClick={logout} style={{ ...btn, background: "#FEE2E2", color: "#991B1B" }}>
+        Sign Out
+      </button>
+    </div>
+  )
+
+  return (
+    <div style={{ maxWidth: "420px", margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <div style={{ fontSize: "3rem" }}>🏛️</div>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>Welcome to JanSeva</h1>
+        <p style={{ color: "#6B7280", fontSize: "0.9rem" }}>Your civic voice, amplified by AI</p>
+      </div>
+
+      <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "1.5rem" }}>
+          <button onClick={() => { setMode("login"); setError("") }} style={{ flex: 1, padding: "9px", borderRadius: "8px", border: "none", cursor: "pointer", background: mode === "login" ? "#FF6B1A" : "#F9F5EE", color: mode === "login" ? "#fff" : "#6B7280", fontWeight: "600", fontSize: "0.85rem" }}>Sign In</button>
+          <button onClick={() => { setMode("register"); setError("") }} style={{ flex: 1, padding: "9px", borderRadius: "8px", border: "none", cursor: "pointer", background: mode === "register" ? "#FF6B1A" : "#F9F5EE", color: mode === "register" ? "#fff" : "#6B7280", fontWeight: "600", fontSize: "0.85rem" }}>Register</button>
+        </div>
+
+        {error && <div style={{ padding: "10px 14px", background: error.includes("OTP") ? "#F0FDF4" : "#FEF2F2", borderRadius: "8px", fontSize: "0.82rem", color: error.includes("OTP") ? "#166534" : "#991B1B", marginBottom: "1rem" }}>{error}</div>}
+
+        {mode === "login" && (
+          <>
+            <div style={{ display: "flex", gap: "8px", marginBottom: "1rem" }}>
+              <button onClick={() => setLoginMethod("email")} style={{ flex: 1, padding: "7px", borderRadius: "6px", border: `1.5px solid ${loginMethod === "email" ? "#FF6B1A" : "#E5E0D5"}`, background: "transparent", cursor: "pointer", fontSize: "0.8rem", color: loginMethod === "email" ? "#FF6B1A" : "#6B7280", fontWeight: "500" }}>Email</button>
+              <button onClick={() => setLoginMethod("mobile")} style={{ flex: 1, padding: "7px", borderRadius: "6px", border: `1.5px solid ${loginMethod === "mobile" ? "#FF6B1A" : "#E5E0D5"}`, background: "transparent", cursor: "pointer", fontSize: "0.8rem", color: loginMethod === "mobile" ? "#FF6B1A" : "#6B7280", fontWeight: "500" }}>Mobile OTP</button>
+            </div>
+            {loginMethod === "email" ? (
+              <>
+                <input style={inp} placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} />
+                <input style={inp} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+                <button onClick={login} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "Signing in..." : "Sign In"}</button>
+              </>
+            ) : (
+              <>
+                <input style={inp} placeholder="+91 Mobile Number" value={mobile} onChange={e => setMobile(e.target.value)} />
+                {!otpSent ? (
+                  <button onClick={sendOtp} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "Sending..." : "Send OTP"}</button>
+                ) : (
+                  <>
+                    <input style={inp} placeholder="Enter 6-digit OTP" value={otp} onChange={e => setOtp(e.target.value)} />
+                    <button onClick={() => { if (otp === realOtp) { setError("OTP verified! Please register first.") } else { setError("Wrong OTP") } }} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>Verify OTP</button>
+                  </>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {mode === "register" && (
+          <>
+            <input style={inp} placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} />
+            <input style={inp} placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} />
+            <input style={inp} placeholder="+91 Mobile Number" value={mobile} onChange={e => setMobile(e.target.value)} />
+            <select style={inp} value={district} onChange={e => setDistrict(e.target.value)}>
+              <option>Rohtak</option>
+              <option>Gurugram</option>
+              <option>Faridabad</option>
+              <option>Ambala</option>
+              <option>Hisar</option>
+              <option>Mohali</option>
+              <option>Chandigarh</option>
+              <option>Ludhiana</option>
+              <option>Amritsar</option>
+            </select>
+            <input style={inp} type="password" placeholder="Create password" value={password} onChange={e => setPassword(e.target.value)} />
+            <button onClick={register} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "Creating account..." : "Create Account"}</button>
+          </>
+        )}
       </div>
     </div>
   )

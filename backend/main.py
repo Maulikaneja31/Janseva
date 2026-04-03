@@ -1,12 +1,12 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from database import SessionLocal, create_tables, Suggestion, RTIApplication
+from database import SessionLocal, create_tables, Suggestion, RTIApplication, User
+from auth import hash_password, verify_password, create_token, decode_token
 from datetime import datetime
 import random
 import string
-import base64
 
 app = FastAPI()
 
@@ -45,9 +45,103 @@ class ImageAnalysisRequest(BaseModel):
     location: str
     query: str
 
+class RegisterRequest(BaseModel):
+    full_name: str
+    email: str
+    mobile: str
+    password: str
+    district: str = "Rohtak"
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class OTPRequest(BaseModel):
+    mobile: str
+
+otp_store = {}
+
 @app.get("/")
 def home():
     return {"message": "JanSeva backend is running!"}
+
+@app.post("/auth/register")
+def register(req: RegisterRequest, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.email == req.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    if db.query(User).filter(User.mobile == req.mobile).first():
+        raise HTTPException(status_code=400, detail="Mobile already registered")
+    user = User(
+        full_name=req.full_name,
+        email=req.email,
+        mobile=req.mobile,
+        hashed_password=hash_password(req.password),
+        district=req.district
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    token = create_token({"sub": str(user.id)})
+    return {
+        "token": token,
+        "user": {
+            "id": user.id,
+            "full_name": user.full_name,
+            "email": user.email,
+            "mobile": user.mobile,
+            "district": user.district
+        }
+    }
+
+@app.post("/auth/login")
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == req.email).first()
+    if not user or not verify_password(req.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    token = create_token({"sub": str(user.id)})
+    return {
+        "token": token,
+        "user": {
+            "id": user.id,
+            "full_name": user.full_name,
+            "email": user.email,
+            "mobile": user.mobile,
+            "district": user.district
+        }
+    }
+
+@app.post("/auth/send-otp")
+def send_otp(req: OTPRequest):
+    otp = "".join(random.choices(string.digits, k=6))
+    otp_store[req.mobile] = otp
+    return {"message": f"OTP sent to {req.mobile}", "otp": otp}
+
+@app.post("/auth/verify-otp")
+def verify_otp(mobile: str, otp: str, db: Session = Depends(get_db)):
+    if otp_store.get(mobile) != otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    user = db.query(User).filter(User.mobile == mobile).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    token = create_token({"sub": str(user.id)})
+    return {"token": token, "user": {"id": user.id, "full_name": user.full_name}}
+
+@app.get("/auth/me")
+def get_me(token: str, db: Session = Depends(get_db)):
+    user_id = decode_token(token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "mobile": user.mobile,
+        "district": user.district,
+        "created_at": user.created_at.strftime("%d %b %Y")
+    }
 
 @app.post("/suggestions")
 def create_suggestion(req: SuggestionRequest, db: Session = Depends(get_db)):
@@ -95,7 +189,7 @@ def analyze_suggestion(req: SuggestionRequest):
 
 @app.post("/generate-rti")
 def generate_rti(req: RTIRequest, db: Session = Depends(get_db)):
-    rti_text = "To,\nThe Public Information Officer,\n" + req.department + "\n\nSubject: RTI Application under RTI Act 2005\n\nI, " + req.name + ", request the following information:\n\n1. " + req.query + "\n\n2. Current status and timeline.\n\n3. Copies of all relevant orders and sanctions.\n\nFee: Rs 10 enclosed.\n\nYours faithfully,\n" + req.name + "\nDate: " + datetime.now().strftime("%d/%m/%Y")
+    rti_text = "To,\nThe Public Information Officer,\n" + req.department + "\n\nSubject: RTI Application under RTI Act 2005\n\nI, " + req.name + ", request the following information:\n\n1. " + req.query + "\n\n2. Current status and timeline.\n\n3. Copies of all relevant orders.\n\nFee: Rs 10 enclosed.\n\nYours faithfully,\n" + req.name + "\nDate: " + datetime.now().strftime("%d/%m/%Y")
     ref_id = "RTI/HR/2026/" + "".join(random.choices(string.digits, k=3))
     rti = RTIApplication(
         name=req.name,
@@ -107,21 +201,6 @@ def generate_rti(req: RTIRequest, db: Session = Depends(get_db)):
     db.add(rti)
     db.commit()
     return {"rti": rti_text, "reference_id": ref_id}
-
-@app.get("/rti-applications")
-def get_rti_applications(db: Session = Depends(get_db)):
-    applications = db.query(RTIApplication).order_by(RTIApplication.created_at.desc()).all()
-    return [
-        {
-            "id": a.id,
-            "name": a.name,
-            "department": a.department,
-            "reference_id": a.reference_id,
-            "status": a.status,
-            "date": a.created_at.strftime("%d %b %Y")
-        }
-        for a in applications
-    ]
 
 @app.post("/analyze-image")
 def analyze_image(req: ImageAnalysisRequest):
@@ -136,8 +215,3 @@ def analyze_image(req: ImageAnalysisRequest):
     report += "\nCITIZEN QUERY: " + req.query
     report += "\nRESPONSE: Based on visual inspection, immediate attention required for drainage and road repair."
     return {"analysis": report}
-
-
-
-
-
