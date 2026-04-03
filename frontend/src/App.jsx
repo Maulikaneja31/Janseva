@@ -145,7 +145,7 @@ function Suggestions() {
       await fetch(`${API}/suggestions/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ suggestion_id: id })
+        body: JSON.stringify({ title, category, description, location: "Rohtak" })
       })
       await loadSuggestions()
     } catch {
