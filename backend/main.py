@@ -29,8 +29,8 @@ def get_db():
 class SuggestionRequest(BaseModel):
     title: str
     category: str
-    location: str
     description: str
+    location: str = "Unknown"
 
 class RTIRequest(BaseModel):
     name: str
