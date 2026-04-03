@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-const API = "http://localhost:8000"
+const API = "https://janseva-backend.onrender.com"
 
 export default function App() {
   const [page, setPage] = useState("dashboard")
