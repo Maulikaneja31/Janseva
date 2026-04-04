@@ -2,16 +2,86 @@ import { useState } from "react"
 
 const API = "https://janseva-backend.onrender.com"
 
+let currentLang = "en"
+
+const translations = {
+  en: {
+    dashboard: "Dashboard", suggestions: "Suggestions", fileRti: "File RTI",
+    urbanAi: "🏙 Urban AI", login: "Login", civicOverview: "Civic Overview — Rohtak, Haryana",
+    realtimeSnapshot: "Real-time snapshot of citizen activity",
+    suggestionsFiled: "Suggestions Filed", issuesResolved: "Issues Resolved",
+    rtisFiled: "RTIs Filed", avgResponse: "Avg Response Time",
+    issuesByCategory: "Issues by Category", publicSuggestions: "Public Suggestions",
+    submitUpvote: "Submit and upvote civic issues", newSuggestion: "+ New Suggestion",
+    submitIssue: "Submit a Civic Issue", category: "Category", issueTitle: "Issue Title",
+    description: "Description", submit: "Submit", aiAnalyze: "🤖 AI Analyze",
+    aiAnalysis: "AI Analysis", fileRtiTitle: "File an RTI Application",
+    fileRtiSub: "AI will draft your official RTI and route it to the right authority",
+    yourName: "Your Full Name", department: "Department (optional)",
+    whatToKnow: "What do you want to know? (Hindi या English)",
+    generateRti: "🤖 Generate RTI Draft", fileThis: "✅ File This RTI", edit: "← Edit",
+    rtiSuccess: "RTI Successfully Filed!", rtiExpected: "Expected response within 30 days as per RTI Act 2005",
+    fileAnother: "File Another RTI", welcome: "Welcome to JanSeva",
+    civicVoice: "Your civic voice, amplified by AI", signIn: "Sign In", register: "Register",
+    createAccount: "Create Account", fullName: "Full Name", email: "Email address",
+    mobile: "+91 Mobile Number", district: "District", password: "Password",
+    verifiedCitizen: "Verified Citizen ✅", profileDetails: "Profile Details",
+    signOut: "Sign Out", yourActivity: "Your Activity", suggestionsFiled2: "Suggestions Filed",
+    urbanTitle: "🏙 AI Urban Planning Vision",
+    urbanSub: "Upload a photo of any area — AI will analyze and suggest what to build or improve",
+    uploadPhoto: "Click to upload a photo", location: "Location / Area Name",
+    yourQuestion: "Your Question (optional)", analyzeAi: "🤖 Analyze with AI",
+    aiPlanningReport: "🤖 AI Planning Report", download: "⬇ Download Report",
+    analyzingImage: "AI is examining the image...",
+    uploadFirst: "Upload an image and click analyze to see AI recommendations",
+  },
+  hi: {
+    dashboard: "डैशबोर्ड", suggestions: "सुझाव", fileRti: "RTI दर्ज करें",
+    urbanAi: "🏙 शहरी AI", login: "लॉगिन", civicOverview: "नागरिक अवलोकन — रोहतक, हरियाणा",
+    realtimeSnapshot: "नागरिक गतिविधि का रियल-टाइम सारांश",
+    suggestionsFiled: "सुझाव दर्ज", issuesResolved: "समस्याएं हल",
+    rtisFiled: "RTI दर्ज", avgResponse: "औसत प्रतिक्रिया समय",
+    issuesByCategory: "श्रेणी अनुसार समस्याएं", publicSuggestions: "सार्वजनिक सुझाव",
+    submitUpvote: "नागरिक समस्याएं दर्ज करें और वोट करें", newSuggestion: "+ नया सुझाव",
+    submitIssue: "नागरिक समस्या दर्ज करें", category: "श्रेणी", issueTitle: "समस्या का शीर्षक",
+    description: "विवरण", submit: "जमा करें", aiAnalyze: "🤖 AI विश्लेषण",
+    aiAnalysis: "AI विश्लेषण", fileRtiTitle: "RTI आवेदन दर्ज करें",
+    fileRtiSub: "AI आपका आधिकारिक RTI तैयार करेगा और सही विभाग को भेजेगा",
+    yourName: "आपका पूरा नाम", department: "विभाग (वैकल्पिक)",
+    whatToKnow: "आप क्या जानना चाहते हैं? (Hindi या English में लिखें)",
+    generateRti: "🤖 RTI मसौदा तैयार करें", fileThis: "✅ यह RTI दर्ज करें",
+    edit: "← संपादित करें", rtiSuccess: "RTI सफलतापूर्वक दर्ज हुई!",
+    rtiExpected: "RTI अधिनियम 2005 के अनुसार 30 दिनों में उत्तर अपेक्षित",
+    fileAnother: "एक और RTI दर्ज करें", welcome: "JanSeva में आपका स्वागत है",
+    civicVoice: "आपकी नागरिक आवाज़, AI द्वारा प्रवर्धित", signIn: "साइन इन",
+    register: "पंजीकरण", createAccount: "खाता बनाएं", fullName: "पूरा नाम",
+    email: "ईमेल पता", mobile: "+91 मोबाइल नंबर", district: "जिला",
+    password: "पासवर्ड", verifiedCitizen: "सत्यापित नागरिक ✅",
+    profileDetails: "प्रोफ़ाइल विवरण", signOut: "साइन आउट",
+    yourActivity: "आपकी गतिविधि", suggestionsFiled2: "सुझाव दर्ज",
+    urbanTitle: "🏙 AI शहरी नियोजन दृष्टि",
+    urbanSub: "किसी भी क्षेत्र की फ़ोटो अपलोड करें — AI विश्लेषण करेगा",
+    uploadPhoto: "फ़ोटो अपलोड करने के लिए क्लिक करें",
+    location: "स्थान / क्षेत्र का नाम", yourQuestion: "आपका प्रश्न (वैकल्पिक)",
+    analyzeAi: "🤖 AI से विश्लेषण करें", aiPlanningReport: "🤖 AI नियोजन रिपोर्ट",
+    download: "⬇ रिपोर्ट डाउनलोड करें", analyzingImage: "AI छवि की जांच कर रहा है...",
+    uploadFirst: "AI की सिफारिशें देखने के लिए छवि अपलोड करें और विश्लेषण करें",
+  }
+}
+
+const getT = () => translations[currentLang]
+
 export default function App() {
   const [page, setPage] = useState("dashboard")
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
+  const [lang, setLang] = useState("en")
+  const t = translations[lang]
+  currentLang = lang
   fetch(`${API}/`).catch(() => {})
 
   return (
     <div style={{ fontFamily: "sans-serif", minHeight: "100vh", background: "#FDF8F0" }}>
-      
-      {/* HEADER */}
       <header style={{ background: "#0D1B3E", padding: "0 2rem", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{ width: "36px", height: "36px", background: "#FF6B1A", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "700" }}>JS</div>
@@ -20,32 +90,35 @@ export default function App() {
             <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.68rem" }}>जन सेवा · Civic Platform</div>
           </div>
         </div>
-        <nav style={{ display: "flex", gap: "4px" }}>
+        <nav style={{ display: "flex", gap: "4px", alignItems: "center" }}>
           {["dashboard", "suggestions", "rti", "vision", "account"].map(p => (
-            <button key={p} onClick={() => setPage(p)} style={{ padding: "7px 16px", borderRadius: "6px", border: "none", cursor: "pointer", background: page === p ? "rgba(255,107,26,0.2)" : "transparent", color: page === p ? "#FF6B1A" : "rgba(255,255,255,0.6)", fontWeight: "500", fontSize: "0.85rem", textTransform: "capitalize" }}>
-            {p === "rti" ? "File RTI" : p === "vision" ? "🏙 Urban AI" : p === "account" ? (user ? "👤 " + user.full_name.split(" ")[0] : "Login") : p}               </button>
+            <button key={p} onClick={() => setPage(p)} style={{ padding: "7px 14px", borderRadius: "6px", border: "none", cursor: "pointer", background: page === p ? "rgba(255,107,26,0.2)" : "transparent", color: page === p ? "#FF6B1A" : "rgba(255,255,255,0.6)", fontWeight: "500", fontSize: "0.82rem" }}>
+              {p === "rti" ? t.fileRti : p === "vision" ? t.urbanAi : p === "account" ? (user ? "👤 " + user.full_name.split(" ")[0] : t.login) : p === "dashboard" ? t.dashboard : t.suggestions}
+            </button>
           ))}
+          <button onClick={() => setLang(lang === "en" ? "hi" : "en")} style={{ padding: "7px 14px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.3)", background: "transparent", color: "#fff", cursor: "pointer", fontSize: "0.82rem", fontWeight: "700", marginLeft: "8px" }}>
+            {lang === "en" ? "हिं" : "EN"}
+          </button>
         </nav>
       </header>
-
-      {/* PAGES */}
       <main style={{ padding: "2rem", maxWidth: "1100px", margin: "0 auto" }}>
         {page === "dashboard" && <Dashboard />}
         {page === "suggestions" && <Suggestions />}
         {page === "rti" && <RTI />}
+        {page === "vision" && <VisionAnalysis />}
         {page === "account" && <Account user={user} token={token} setUser={setUser} setToken={setToken} setPage={setPage} />}
       </main>
     </div>
   )
 }
 
-// ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function Dashboard() {
+  const t = getT()
   const stats = [
-    { num: "2,847", label: "Suggestions Filed", color: "#FF6B1A" },
-    { num: "68%", label: "Issues Resolved", color: "#128807" },
-    { num: "341", label: "RTIs Filed", color: "#0D1B3E" },
-    { num: "4.2 days", label: "Avg Response Time", color: "#D4A017" },
+    { num: "2,847", label: t.suggestionsFiled, color: "#FF6B1A" },
+    { num: "68%", label: t.issuesResolved, color: "#128807" },
+    { num: "341", label: t.rtisFiled, color: "#0D1B3E" },
+    { num: "4.2 days", label: t.avgResponse, color: "#D4A017" },
   ]
   const issues = [
     { label: "Road & Infrastructure", val: 38, color: "#E85D24" },
@@ -56,10 +129,8 @@ function Dashboard() {
   ]
   return (
     <div>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>Civic Overview — Rohtak, Haryana</h1>
-      <p style={{ color: "#6B7280", marginBottom: "1.5rem", fontSize: "0.9rem" }}>Real-time snapshot of citizen activity</p>
-
-      {/* Stats */}
+      <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>{t.civicOverview}</h1>
+      <p style={{ color: "#6B7280", marginBottom: "1.5rem", fontSize: "0.9rem" }}>{t.realtimeSnapshot}</p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
         {stats.map(s => (
           <div key={s.label} style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.2rem", borderLeft: `4px solid ${s.color}` }}>
@@ -68,10 +139,8 @@ function Dashboard() {
           </div>
         ))}
       </div>
-
-      {/* Chart */}
       <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>Issues by Category</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>{t.issuesByCategory}</h2>
         {issues.map(i => (
           <div key={i.label} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
             <div style={{ minWidth: "160px", fontSize: "0.82rem", fontWeight: "500" }}>{i.label}</div>
@@ -86,8 +155,8 @@ function Dashboard() {
   )
 }
 
-// ── SUGGESTIONS ───────────────────────────────────────────────────────────────
 function Suggestions() {
+  const t = getT()
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState("")
   const [category, setCategory] = useState("")
@@ -95,64 +164,46 @@ function Suggestions() {
   const [analysis, setAnalysis] = useState("")
   const [loading, setLoading] = useState(false)
   const [suggestions, setSuggestions] = useState([])
+  const [voted, setVoted] = useState(new Set())
 
   const loadSuggestions = async () => {
     try {
       const res = await fetch(`${API}/suggestions`)
       const data = await res.json()
       setSuggestions(data)
-    } catch {
-      console.log("Could not load suggestions")
-    }
+    } catch { console.log("Could not load suggestions") }
   }
 
   useState(() => { loadSuggestions() }, [])
-  const [voted, setVoted] = useState(new Set())
 
   const analyze = async () => {
     if (!title || !description) return alert("Please fill title and description first")
-    setLoading(true)
-    setAnalysis("")
-    try {
-      const res = await fetch(`${API}/analyze-suggestion`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, category, description })
-      })
-      const data = await res.json()
-      setAnalysis(data.analysis)
-    } catch {
-      setAnalysis("Could not connect to backend. Make sure it is running on port 8000.")
-    }
+    setLoading(true); setAnalysis("")
+    const res = await fetch(`${API}/analyze-suggestion`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, category, description, location: "Rohtak" })
+    })
+    const data = await res.json()
+    setAnalysis(data.analysis)
     setLoading(false)
   }
 
   const submit = async () => {
     if (!title || !category || !description) return alert("Please fill all fields")
-    try {
-      await fetch(`${API}/suggestions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, category, location: "Rohtak", description })
-      })
-      await loadSuggestions()
-      setTitle(""); setCategory(""); setDescription(""); setAnalysis(""); setShowForm(false)
-    } catch {
-      alert("Could not save suggestion")
-    }
+    await fetch(`${API}/suggestions`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, category, location: "Rohtak", description })
+    })
+    await loadSuggestions()
+    setTitle(""); setCategory(""); setDescription(""); setAnalysis(""); setShowForm(false)
   }
 
   const vote = async (id) => {
-    try {
-      await fetch(`${API}/suggestions/vote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, category, description, location: "Rohtak" })
-      })
-      await loadSuggestions()
-    } catch {
-      console.log("Vote failed")
-    }
+    await fetch(`${API}/suggestions/vote`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ suggestion_id: id })
+    })
+    await loadSuggestions()
   }
 
   const statusColor = { "Open": "#F59E0B", "Under Review": "#3B82F6", "Resolved": "#16A34A" }
@@ -161,49 +212,47 @@ function Suggestions() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: "700" }}>Public Suggestions</h1>
-          <p style={{ color: "#6B7280", fontSize: "0.9rem" }}>Submit and upvote civic issues</p>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: "700" }}>{t.publicSuggestions}</h1>
+          <p style={{ color: "#6B7280", fontSize: "0.9rem" }}>{t.submitUpvote}</p>
         </div>
         <button onClick={() => setShowForm(!showForm)} style={{ padding: "10px 20px", background: "#FF6B1A", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>
-          + New Suggestion
+          {t.newSuggestion}
         </button>
       </div>
-
       {showForm && (
         <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>Submit a Civic Issue</h2>
+          <h2 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>{t.submitIssue}</h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
             <div>
-              <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>Category</label>
+              <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.category}</label>
               <select value={category} onChange={e => setCategory(e.target.value)} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }}>
-                <option value="">Select category</option>
+                <option value="">Select</option>
                 <option>Road</option><option>Water</option><option>Electric</option><option>Health</option><option>Sanitation</option>
               </select>
             </div>
             <div>
-              <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>Issue Title</label>
-              <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Brief title" style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }} />
+              <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.issueTitle}</label>
+              <input value={title} onChange={e => setTitle(e.target.value)} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }} />
             </div>
           </div>
           <div style={{ marginBottom: "1rem" }}>
-            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the issue in detail..." rows={3} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem", resize: "vertical" }} />
+            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.description}</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem", resize: "vertical" }} />
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
-            <button onClick={submit} style={{ padding: "9px 18px", background: "#FF6B1A", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>Submit</button>
+            <button onClick={submit} style={{ padding: "9px 18px", background: "#FF6B1A", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>{t.submit}</button>
             <button onClick={analyze} disabled={loading} style={{ padding: "9px 18px", background: "#0D1B3E", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>
-              {loading ? "Analyzing..." : "🤖 AI Analyze"}
+              {loading ? "..." : t.aiAnalyze}
             </button>
           </div>
           {analysis && (
             <div style={{ marginTop: "1rem", background: "#f0f7ff", border: "1.5px solid #C7D9F0", borderRadius: "10px", padding: "1rem" }}>
-              <div style={{ fontSize: "0.72rem", fontWeight: "700", color: "#0D1B3E", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "1px" }}>🤖 AI Analysis</div>
+              <div style={{ fontSize: "0.72rem", fontWeight: "700", color: "#0D1B3E", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "1px" }}>{t.aiAnalysis}</div>
               <pre style={{ fontSize: "0.83rem", lineHeight: "1.7", whiteSpace: "pre-wrap", margin: 0 }}>{analysis}</pre>
             </div>
           )}
         </div>
       )}
-
       {suggestions.map(s => (
         <div key={s.id} style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.2rem 1.4rem", marginBottom: "1rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
@@ -225,8 +274,8 @@ function Suggestions() {
   )
 }
 
-// ── RTI ───────────────────────────────────────────────────────────────────────
 function RTI() {
+  const t = getT()
   const [name, setName] = useState("")
   const [dept, setDept] = useState("")
   const [query, setQuery] = useState("")
@@ -237,53 +286,41 @@ function RTI() {
 
   const generate = async () => {
     if (!name || !query) return alert("Please fill your name and query")
-    setLoading(true)
-    setDraft("")
-    try {
-      const res = await fetch(`${API}/generate-rti`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, query, department: dept || "Public Works Department, Haryana" })
-      })
-      const data = await res.json()
-      setDraft(data.rti)
-    } catch {
-      setDraft("Could not connect to backend. Make sure it is running on port 8000.")
-    }
+    setLoading(true); setDraft("")
+    const res = await fetch(`${API}/generate-rti`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, query, department: dept || "Public Works Department, Haryana" })
+    })
+    const data = await res.json()
+    setDraft(data.rti)
+    setRefId(data.reference_id)
     setLoading(false)
-  }
-
-  const fileRTI = () => {
-    const id = "RTI/HR/2026/" + Math.floor(Math.random() * 900 + 100)
-    setRefId(id)
-    setFiled(true)
   }
 
   if (filed) return (
     <div style={{ textAlign: "center", padding: "3rem", background: "#fff", borderRadius: "12px", border: "1px solid #E5E0D5" }}>
       <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✅</div>
-      <h2 style={{ color: "#16A34A", fontSize: "1.3rem", marginBottom: "8px" }}>RTI Successfully Filed!</h2>
+      <h2 style={{ color: "#16A34A", fontSize: "1.3rem", marginBottom: "8px" }}>{t.rtiSuccess}</h2>
       <p style={{ color: "#6B7280", marginBottom: "6px" }}>Reference ID: <strong style={{ color: "#FF6B1A" }}>{refId}</strong></p>
-      <p style={{ color: "#6B7280", fontSize: "0.85rem" }}>Expected response within 30 days as per RTI Act 2005</p>
+      <p style={{ color: "#6B7280", fontSize: "0.85rem" }}>{t.rtiExpected}</p>
       <button onClick={() => { setFiled(false); setDraft(""); setName(""); setQuery(""); setDept("") }} style={{ marginTop: "1.5rem", padding: "9px 20px", background: "#F9F5EE", border: "1px solid #E5E0D5", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>
-        File Another RTI
+        {t.fileAnother}
       </button>
     </div>
   )
 
   return (
     <div>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>File an RTI Application</h1>
-      <p style={{ color: "#6B7280", marginBottom: "1.5rem", fontSize: "0.9rem" }}>AI will draft your official RTI and route it to the right authority</p>
-
+      <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>{t.fileRtiTitle}</h1>
+      <p style={{ color: "#6B7280", marginBottom: "1.5rem", fontSize: "0.9rem" }}>{t.fileRtiSub}</p>
       <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem", marginBottom: "1rem" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
           <div>
-            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>Your Full Name</label>
+            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.yourName}</label>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Rajesh Kumar" style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }} />
           </div>
           <div>
-            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>Department (optional)</label>
+            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.department}</label>
             <select value={dept} onChange={e => setDept(e.target.value)} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }}>
               <option value="">Let AI suggest</option>
               <option>Public Works Department, Haryana</option>
@@ -295,30 +332,31 @@ function RTI() {
           </div>
         </div>
         <div style={{ marginBottom: "1rem" }}>
-          <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>What do you want to know? (Hindi या English)</label>
-          <textarea value={query} onChange={e => setQuery(e.target.value)} placeholder="Describe what information you need from the government..." rows={4} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem", resize: "vertical" }} />
+          <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.whatToKnow}</label>
+          <textarea value={query} onChange={e => setQuery(e.target.value)} rows={4} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem", resize: "vertical" }} />
         </div>
         <button onClick={generate} disabled={loading} style={{ padding: "10px 22px", background: "#FF6B1A", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" }}>
-          {loading ? "⏳ Generating..." : "🤖 Generate RTI Draft"}
+          {loading ? "⏳ Generating..." : t.generateRti}
         </button>
       </div>
-
       {draft && (
         <div>
-          <div style={{ background: "#f0f7ff", border: "1.5px solid #C7D9F0", borderRadius: "12px", padding: "1.2rem", marginBottom: "1rem", position: "relative" }}>
+          <div style={{ background: "#f0f7ff", border: "1.5px solid #C7D9F0", borderRadius: "12px", padding: "1.2rem", marginBottom: "1rem" }}>
             <div style={{ fontSize: "0.72rem", fontWeight: "700", color: "#0D1B3E", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "1px" }}>🤖 AI Generated RTI Draft</div>
             <pre style={{ fontSize: "0.83rem", lineHeight: "1.8", whiteSpace: "pre-wrap", margin: 0 }}>{draft}</pre>
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
-            <button onClick={fileRTI} style={{ padding: "10px 22px", background: "#128807", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>✅ File This RTI</button>
-            <button onClick={() => setDraft("")} style={{ padding: "10px 22px", background: "#F9F5EE", border: "1px solid #E5E0D5", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>← Edit</button>
+            <button onClick={() => setFiled(true)} style={{ padding: "10px 22px", background: "#128807", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>{t.fileThis}</button>
+            <button onClick={() => setDraft("")} style={{ padding: "10px 22px", background: "#F9F5EE", border: "1px solid #E5E0D5", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>{t.edit}</button>
           </div>
         </div>
       )}
     </div>
   )
 }
+
 function VisionAnalysis() {
+  const t = getT()
   const [image, setImage] = useState(null)
   const [preview, setPreview] = useState(null)
   const [location, setLocation] = useState("")
@@ -330,114 +368,59 @@ function VisionAnalysis() {
     const file = e.target.files[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = (ev) => {
-      setPreview(ev.target.result)
-      setImage(ev.target.result.split(",")[1])
-    }
+    reader.onload = (ev) => { setPreview(ev.target.result); setImage(ev.target.result.split(",")[1]) }
     reader.readAsDataURL(file)
   }
 
   const analyze = async () => {
     if (!image) return alert("Please upload an image first")
     if (!location) return alert("Please enter the location")
-    setLoading(true)
-    setAnalysis("")
-    try {
-      const res = await fetch(`${API}/analyze-image`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image_base64: image,
-          location: location,
-          query: query || "What should be built or improved here?"
-        })
-      })
-      const data = await res.json()
-      setAnalysis(data.analysis)
-    } catch {
-      setAnalysis("Could not connect to backend. Make sure it is running on port 8000.")
-    }
+    setLoading(true); setAnalysis("")
+    const res = await fetch(`${API}/analyze-image`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_base64: image, location, query: query || "What should be built or improved here?" })
+    })
+    const data = await res.json()
+    setAnalysis(data.analysis)
     setLoading(false)
   }
 
   return (
     <div>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>
-        🏙 AI Urban Planning Vision
-      </h1>
-      <p style={{ color: "#6B7280", marginBottom: "1.5rem", fontSize: "0.9rem" }}>
-        Upload a photo of any area — AI will analyze and suggest what to build or improve
-      </p>
-
+      <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>{t.urbanTitle}</h1>
+      <p style={{ color: "#6B7280", marginBottom: "1.5rem", fontSize: "0.9rem" }}>{t.urbanSub}</p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
-        
-        {/* LEFT — Upload */}
         <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
-          <h2 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>Upload Area Photo</h2>
-          
-          <div style={{ border: "2px dashed #E5E0D5", borderRadius: "10px", padding: "2rem", textAlign: "center", marginBottom: "1rem", cursor: "pointer", background: "#F9F5EE" }}
-            onClick={() => document.getElementById("img-upload").click()}>
-            {preview ? (
-              <img src={preview} alt="preview" style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "8px", objectFit: "cover" }} />
-            ) : (
+          <div style={{ border: "2px dashed #E5E0D5", borderRadius: "10px", padding: "2rem", textAlign: "center", marginBottom: "1rem", cursor: "pointer", background: "#F9F5EE" }} onClick={() => document.getElementById("img-upload").click()}>
+            {preview ? <img src={preview} alt="preview" style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "8px", objectFit: "cover" }} /> : (
               <div>
                 <div style={{ fontSize: "2.5rem", marginBottom: "8px" }}>📸</div>
-                <div style={{ fontSize: "0.85rem", color: "#6B7280" }}>Click to upload a photo</div>
-                <div style={{ fontSize: "0.75rem", color: "#9CA3AF", marginTop: "4px" }}>JPG, PNG supported</div>
+                <div style={{ fontSize: "0.85rem", color: "#6B7280" }}>{t.uploadPhoto}</div>
               </div>
             )}
           </div>
           <input id="img-upload" type="file" accept="image/*" onChange={handleImage} style={{ display: "none" }} />
-
           <div style={{ marginBottom: "1rem" }}>
-            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>Location / Area Name</label>
-            <input value={location} onChange={e => setLocation(e.target.value)}
-              placeholder="e.g. Sector 14, Rohtak, Haryana"
-              style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }} />
+            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.location}</label>
+            <input value={location} onChange={e => setLocation(e.target.value)} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }} />
           </div>
-
           <div style={{ marginBottom: "1rem" }}>
-            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>Your Question (optional)</label>
-            <textarea value={query} onChange={e => setQuery(e.target.value)}
-              placeholder="e.g. What can be built on this empty plot? What infrastructure is missing?"
-              rows={3}
-              style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem", resize: "vertical" }} />
+            <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.yourQuestion}</label>
+            <textarea value={query} onChange={e => setQuery(e.target.value)} rows={3} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem", resize: "vertical" }} />
           </div>
-
-          <button onClick={analyze} disabled={loading}
-            style={{ width: "100%", padding: "11px", background: "#FF6B1A", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" }}>
-            {loading ? "⏳ AI is analyzing..." : "🤖 Analyze with AI"}
+          <button onClick={analyze} disabled={loading} style={{ width: "100%", padding: "11px", background: "#FF6B1A", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" }}>
+            {loading ? "⏳ Analyzing..." : t.analyzeAi}
           </button>
         </div>
-
-        {/* RIGHT — Results */}
         <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
-          <h2 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>AI Analysis Report</h2>
-          {!analysis && !loading && (
-            <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#9CA3AF" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "8px" }}>🏗</div>
-              <div style={{ fontSize: "0.85rem" }}>Upload an image and click analyze to see AI recommendations</div>
-            </div>
-          )}
-          {loading && (
-            <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6B7280" }}>
-              <div style={{ fontSize: "2rem", marginBottom: "8px" }}>🤖</div>
-              <div style={{ fontSize: "0.85rem" }}>AI is examining the image...</div>
-            </div>
-          )}
+          {!analysis && !loading && <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#9CA3AF" }}><div style={{ fontSize: "2.5rem" }}>🏗</div><div style={{ fontSize: "0.85rem", marginTop: "8px" }}>{t.uploadFirst}</div></div>}
+          {loading && <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6B7280" }}><div style={{ fontSize: "2rem" }}>🤖</div><div style={{ fontSize: "0.85rem", marginTop: "8px" }}>{t.analyzingImage}</div></div>}
           {analysis && (
             <div style={{ background: "#f0f7ff", border: "1.5px solid #C7D9F0", borderRadius: "10px", padding: "1rem" }}>
-              <div style={{ fontSize: "0.72rem", fontWeight: "700", color: "#0D1B3E", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "1px" }}>
-                🤖 AI Planning Report
-              </div>
+              <div style={{ fontSize: "0.72rem", fontWeight: "700", color: "#0D1B3E", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "1px" }}>{t.aiPlanningReport}</div>
               <pre style={{ fontSize: "0.82rem", lineHeight: "1.8", whiteSpace: "pre-wrap", margin: 0, color: "#1F2937" }}>{analysis}</pre>
-              <button onClick={() => {
-                const el = document.createElement("a")
-                el.href = "data:text/plain;charset=utf-8," + encodeURIComponent(analysis)
-                el.download = "urban-analysis-report.txt"
-                el.click()
-              }} style={{ marginTop: "1rem", padding: "8px 16px", background: "#0D1B3E", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600" }}>
-                ⬇ Download Report
+              <button onClick={() => { const el = document.createElement("a"); el.href = "data:text/plain;charset=utf-8," + encodeURIComponent(analysis); el.download = "urban-analysis-report.txt"; el.click() }} style={{ marginTop: "1rem", padding: "8px 16px", background: "#0D1B3E", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600" }}>
+                {t.download}
               </button>
             </div>
           )}
@@ -446,7 +429,9 @@ function VisionAnalysis() {
     </div>
   )
 }
+
 function Account({ user, token, setUser, setToken, setPage }) {
+  const t = getT()
   const [mode, setMode] = useState(user ? "profile" : "login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -464,8 +449,7 @@ function Account({ user, token, setUser, setToken, setPage }) {
     if (!email || !password) return setError("Please fill all fields")
     setLoading(true); setError("")
     const res = await fetch(`${API}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
     })
     const data = await res.json()
@@ -480,8 +464,7 @@ function Account({ user, token, setUser, setToken, setPage }) {
     if (!fullName || !email || !mobile || !password) return setError("Please fill all fields")
     setLoading(true); setError("")
     const res = await fetch(`${API}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ full_name: fullName, email, mobile, password, district })
     })
     const data = await res.json()
@@ -495,17 +478,13 @@ function Account({ user, token, setUser, setToken, setPage }) {
   const sendOtp = async () => {
     if (!mobile) return setError("Enter mobile number first")
     setLoading(true)
-    try {
-      const res = await fetch(`${API}/auth/send-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile })
-      })
-      const data = await res.json()
-      setRealOtp(data.otp)
-      setOtpSent(true)
-      setError(`OTP sent! (Demo OTP: ${data.otp})`)
-    } catch { setError("Could not send OTP") }
+    const res = await fetch(`${API}/auth/send-otp`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile })
+    })
+    const data = await res.json()
+    setRealOtp(data.otp); setOtpSent(true)
+    setError(`OTP sent! (Demo OTP: ${data.otp})`)
     setLoading(false)
   }
 
@@ -525,15 +504,11 @@ function Account({ user, token, setUser, setToken, setPage }) {
           {user.full_name[0].toUpperCase()}
         </div>
         <h2 style={{ fontSize: "1.3rem", fontWeight: "700", marginBottom: "4px" }}>{user.full_name}</h2>
-        <p style={{ color: "#6B7280", fontSize: "0.85rem" }}>Verified Citizen ✅</p>
+        <p style={{ color: "#6B7280", fontSize: "0.85rem" }}>{t.verifiedCitizen}</p>
       </div>
       <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem", marginBottom: "1rem" }}>
-        <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>Profile Details</h3>
-        {[
-          { label: "Email", value: user.email },
-          { label: "Mobile", value: user.mobile },
-          { label: "District", value: user.district },
-        ].map(item => (
+        <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>{t.profileDetails}</h3>
+        {[{ label: t.email, value: user.email }, { label: t.mobile, value: user.mobile }, { label: t.district, value: user.district }].map(item => (
           <div key={item.label} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #F3F4F6" }}>
             <span style={{ fontSize: "0.82rem", color: "#6B7280", fontWeight: "600" }}>{item.label}</span>
             <span style={{ fontSize: "0.82rem", color: "#1F2937" }}>{item.value}</span>
@@ -541,21 +516,19 @@ function Account({ user, token, setUser, setToken, setPage }) {
         ))}
       </div>
       <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem", marginBottom: "1rem" }}>
-        <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>Your Activity</h3>
+        <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>{t.yourActivity}</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <div style={{ background: "#FFF7ED", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
             <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#FF6B1A" }}>0</div>
-            <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>Suggestions Filed</div>
+            <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>{t.suggestionsFiled2}</div>
           </div>
           <div style={{ background: "#F0FDF4", borderRadius: "8px", padding: "1rem", textAlign: "center" }}>
             <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#16A34A" }}>0</div>
-            <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>RTIs Filed</div>
+            <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>{t.rtisFiled}</div>
           </div>
         </div>
       </div>
-      <button onClick={logout} style={{ ...btn, background: "#FEE2E2", color: "#991B1B" }}>
-        Sign Out
-      </button>
+      <button onClick={logout} style={{ ...btn, background: "#FEE2E2", color: "#991B1B" }}>{t.signOut}</button>
     </div>
   )
 
@@ -563,18 +536,15 @@ function Account({ user, token, setUser, setToken, setPage }) {
     <div style={{ maxWidth: "420px", margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: "2rem" }}>
         <div style={{ fontSize: "3rem" }}>🏛️</div>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>Welcome to JanSeva</h1>
-        <p style={{ color: "#6B7280", fontSize: "0.9rem" }}>Your civic voice, amplified by AI</p>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>{t.welcome}</h1>
+        <p style={{ color: "#6B7280", fontSize: "0.9rem" }}>{t.civicVoice}</p>
       </div>
-
       <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
         <div style={{ display: "flex", gap: "8px", marginBottom: "1.5rem" }}>
-          <button onClick={() => { setMode("login"); setError("") }} style={{ flex: 1, padding: "9px", borderRadius: "8px", border: "none", cursor: "pointer", background: mode === "login" ? "#FF6B1A" : "#F9F5EE", color: mode === "login" ? "#fff" : "#6B7280", fontWeight: "600", fontSize: "0.85rem" }}>Sign In</button>
-          <button onClick={() => { setMode("register"); setError("") }} style={{ flex: 1, padding: "9px", borderRadius: "8px", border: "none", cursor: "pointer", background: mode === "register" ? "#FF6B1A" : "#F9F5EE", color: mode === "register" ? "#fff" : "#6B7280", fontWeight: "600", fontSize: "0.85rem" }}>Register</button>
+          <button onClick={() => { setMode("login"); setError("") }} style={{ flex: 1, padding: "9px", borderRadius: "8px", border: "none", cursor: "pointer", background: mode === "login" ? "#FF6B1A" : "#F9F5EE", color: mode === "login" ? "#fff" : "#6B7280", fontWeight: "600", fontSize: "0.85rem" }}>{t.signIn}</button>
+          <button onClick={() => { setMode("register"); setError("") }} style={{ flex: 1, padding: "9px", borderRadius: "8px", border: "none", cursor: "pointer", background: mode === "register" ? "#FF6B1A" : "#F9F5EE", color: mode === "register" ? "#fff" : "#6B7280", fontWeight: "600", fontSize: "0.85rem" }}>{t.register}</button>
         </div>
-
         {error && <div style={{ padding: "10px 14px", background: error.includes("OTP") ? "#F0FDF4" : "#FEF2F2", borderRadius: "8px", fontSize: "0.82rem", color: error.includes("OTP") ? "#166534" : "#991B1B", marginBottom: "1rem" }}>{error}</div>}
-
         {mode === "login" && (
           <>
             <div style={{ display: "flex", gap: "8px", marginBottom: "1rem" }}>
@@ -583,44 +553,37 @@ function Account({ user, token, setUser, setToken, setPage }) {
             </div>
             {loginMethod === "email" ? (
               <>
-                <input style={inp} placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} />
-                <input style={inp} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
-                <button onClick={login} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "Signing in..." : "Sign In"}</button>
+                <input style={inp} placeholder={t.email} value={email} onChange={e => setEmail(e.target.value)} />
+                <input style={inp} type="password" placeholder={t.password} value={password} onChange={e => setPassword(e.target.value)} />
+                <button onClick={login} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "..." : t.signIn}</button>
               </>
             ) : (
               <>
-                <input style={inp} placeholder="+91 Mobile Number" value={mobile} onChange={e => setMobile(e.target.value)} />
+                <input style={inp} placeholder={t.mobile} value={mobile} onChange={e => setMobile(e.target.value)} />
                 {!otpSent ? (
-                  <button onClick={sendOtp} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "Sending..." : "Send OTP"}</button>
+                  <button onClick={sendOtp} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "..." : "Send OTP"}</button>
                 ) : (
                   <>
                     <input style={inp} placeholder="Enter 6-digit OTP" value={otp} onChange={e => setOtp(e.target.value)} />
-                    <button onClick={() => { if (otp === realOtp) { setError("OTP verified! Please register first.") } else { setError("Wrong OTP") } }} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>Verify OTP</button>
+                    <button onClick={() => otp === realOtp ? setError("OTP verified! Please register first.") : setError("Wrong OTP")} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>Verify OTP</button>
                   </>
                 )}
               </>
             )}
           </>
         )}
-
         {mode === "register" && (
           <>
-            <input style={inp} placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} />
-            <input style={inp} placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} />
-            <input style={inp} placeholder="+91 Mobile Number" value={mobile} onChange={e => setMobile(e.target.value)} />
+            <input style={inp} placeholder={t.fullName} value={fullName} onChange={e => setFullName(e.target.value)} />
+            <input style={inp} placeholder={t.email} value={email} onChange={e => setEmail(e.target.value)} />
+            <input style={inp} placeholder={t.mobile} value={mobile} onChange={e => setMobile(e.target.value)} />
             <select style={inp} value={district} onChange={e => setDistrict(e.target.value)}>
-              <option>Rohtak</option>
-              <option>Gurugram</option>
-              <option>Faridabad</option>
-              <option>Ambala</option>
-              <option>Hisar</option>
-              <option>Mohali</option>
-              <option>Chandigarh</option>
-              <option>Ludhiana</option>
-              <option>Amritsar</option>
+              <option>Rohtak</option><option>Gurugram</option><option>Faridabad</option>
+              <option>Ambala</option><option>Hisar</option><option>Mohali</option>
+              <option>Chandigarh</option><option>Ludhiana</option><option>Amritsar</option>
             </select>
-            <input style={inp} type="password" placeholder="Create password" value={password} onChange={e => setPassword(e.target.value)} />
-            <button onClick={register} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "Creating account..." : "Create Account"}</button>
+            <input style={inp} type="password" placeholder={t.password} value={password} onChange={e => setPassword(e.target.value)} />
+            <button onClick={register} disabled={loading} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>{loading ? "..." : t.createAccount}</button>
           </>
         )}
       </div>
