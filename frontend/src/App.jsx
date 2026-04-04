@@ -6,10 +6,120 @@ export default function App() {
   const [page, setPage] = useState("dashboard")
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
+  const [lang, setLang] = useState("en")
+
+const t = {
+  en: {
+    dashboard: "Dashboard",
+    suggestions: "Suggestions",
+    fileRti: "File RTI",
+    urbanAi: "Urban AI",
+    login: "Login",
+    civicOverview: "Civic Overview — Rohtak, Haryana",
+    realtimeSnapshot: "Real-time snapshot of citizen activity",
+    suggestionsFiled: "Suggestions Filed",
+    issuesResolved: "Issues Resolved",
+    rtisFiled: "RTIs Filed",
+    avgResponse: "Avg Response Time",
+    issuesByCategory: "Issues by Category",
+    publicSuggestions: "Public Suggestions",
+    submitUpvote: "Submit and upvote civic issues",
+    newSuggestion: "+ New Suggestion",
+    submitIssue: "Submit a Civic Issue",
+    category: "Category",
+    issueTitle: "Issue Title",
+    description: "Description",
+    submit: "Submit",
+    aiAnalyze: "🤖 AI Analyze",
+    aiAnalysis: "AI Analysis",
+    fileRtiTitle: "File an RTI Application",
+    fileRtiSub: "AI will draft your official RTI",
+    yourName: "Your Full Name",
+    department: "Department (optional)",
+    whatToKnow: "What do you want to know?",
+    generateRti: "🤖 Generate RTI Draft",
+    fileThis: "✅ File This RTI",
+    edit: "← Edit",
+    welcome: "Welcome to JanSeva",
+    civicVoice: "Your civic voice, amplified by AI",
+    signIn: "Sign In",
+    register: "Register",
+    createAccount: "Create Account",
+    fullName: "Full Name",
+    email: "Email address",
+    mobile: "+91 Mobile Number",
+    district: "District",
+    password: "Password",
+    verifiedCitizen: "Verified Citizen ✅",
+    profileDetails: "Profile Details",
+    signOut: "Sign Out",
+    urbanTitle: "🏙 AI Urban Planning Vision",
+    urbanSub: "Upload a photo — AI will analyze and suggest",
+    uploadPhoto: "Click to upload a photo",
+    location: "Location / Area Name",
+    yourQuestion: "Your Question (optional)",
+    analyzeAi: "🤖 Analyze with AI",
+    aiReport: "AI Planning Report",
+    download: "⬇ Download Report",
+  },
+  hi: {
+    dashboard: "डैशबोर्ड",
+    suggestions: "सुझाव",
+    fileRti: "RTI दर्ज करें",
+    urbanAi: "शहरी AI",
+    login: "लॉगिन",
+    civicOverview: "नागरिक अवलोकन — रोहतक, हरियाणा",
+    realtimeSnapshot: "नागरिक गतिविधि का रियल-टाइम सारांश",
+    suggestionsFiled: "सुझाव दर्ज",
+    issuesResolved: "समस्याएं हल",
+    rtisFiled: "RTI दर्ज",
+    avgResponse: "औसत प्रतिक्रिया समय",
+    issuesByCategory: "श्रेणी अनुसार समस्याएं",
+    publicSuggestions: "सार्वजनिक सुझाव",
+    submitUpvote: "नागरिक समस्याएं दर्ज करें और वोट करें",
+    newSuggestion: "+ नया सुझाव",
+    submitIssue: "नागरिक समस्या दर्ज करें",
+    category: "श्रेणी",
+    issueTitle: "समस्या का शीर्षक",
+    description: "विवरण",
+    submit: "जमा करें",
+    aiAnalyze: "🤖 AI विश्लेषण",
+    aiAnalysis: "AI विश्लेषण",
+    fileRtiTitle: "RTI आवेदन दर्ज करें",
+    fileRtiSub: "AI आपका आधिकारिक RTI तैयार करेगा",
+    yourName: "आपका पूरा नाम",
+    department: "विभाग (वैकल्पिक)",
+    whatToKnow: "आप क्या जानना चाहते हैं?",
+    generateRti: "🤖 RTI मसौदा तैयार करें",
+    fileThis: "✅ यह RTI दर्ज करें",
+    edit: "← संपादित करें",
+    welcome: "JanSeva में आपका स्वागत है",
+    civicVoice: "आपकी नागरिक आवाज़, AI द्वारा प्रवर्धित",
+    signIn: "साइन इन",
+    register: "पंजीकरण",
+    createAccount: "खाता बनाएं",
+    fullName: "पूरा नाम",
+    email: "ईमेल पता",
+    mobile: "+91 मोबाइल नंबर",
+    district: "जिला",
+    password: "पासवर्ड",
+    verifiedCitizen: "सत्यापित नागरिक ✅",
+    profileDetails: "प्रोफ़ाइल विवरण",
+    signOut: "साइन आउट",
+    urbanTitle: "🏙 AI शहरी नियोजन दृष्टि",
+    urbanSub: "फ़ोटो अपलोड करें — AI विश्लेषण करेगा",
+    uploadPhoto: "फ़ोटो अपलोड करने के लिए क्लिक करें",
+    location: "स्थान / क्षेत्र का नाम",
+    yourQuestion: "आपका प्रश्न (वैकल्पिक)",
+    analyzeAi: "🤖 AI से विश्लेषण करें",
+    aiReport: "AI नियोजन रिपोर्ट",
+    download: "⬇ रिपोर्ट डाउनलोड करें",
+  }
+}[lang]
   fetch(`${API}/`).catch(() => {})
 
   return (
-    <div style={{ fontFamily: "sans-serif", minHeight: "100vh", background: "#FDF8F0" }}>
+    <div style={{ fontFamily: lang === "hi" ? "'Noto Sans Devanagari', sans-serif" : "sans-serif", minHeight: "100vh", background: "#FDF8F0" }}>
       
       {/* HEADER */}
       <header style={{ background: "#0D1B3E", padding: "0 2rem", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
@@ -23,17 +133,21 @@ export default function App() {
         <nav style={{ display: "flex", gap: "4px" }}>
           {["dashboard", "suggestions", "rti", "vision", "account"].map(p => (
             <button key={p} onClick={() => setPage(p)} style={{ padding: "7px 16px", borderRadius: "6px", border: "none", cursor: "pointer", background: page === p ? "rgba(255,107,26,0.2)" : "transparent", color: page === p ? "#FF6B1A" : "rgba(255,255,255,0.6)", fontWeight: "500", fontSize: "0.85rem", textTransform: "capitalize" }}>
-            {p === "rti" ? "File RTI" : p === "vision" ? "🏙 Urban AI" : p === "account" ? (user ? "👤 " + user.full_name.split(" ")[0] : "Login") : p}               </button>
+            {p === "rti" ? t.fileRti : p === "vision" ? t.urbanAi : p === "account" ? (user ? "👤 " + user.full_name.split(" ")[0] : t.login) : p === "dashboard" ? t.dashboard : t.suggestions}            </button>
           ))}
         </nav>
+        <button onClick={() => setLang(lang === "en" ? "hi" : "en")} style={{ padding: "7px 14px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.3)", background: "transparent", color: "#fff", cursor: "pointer", fontSize: "0.82rem", fontWeight: "600" }}>
+  {lang === "en" ? "हिं" : "EN"}
+</button>
       </header>
 
       {/* PAGES */}
       <main style={{ padding: "2rem", maxWidth: "1100px", margin: "0 auto" }}>
         {page === "dashboard" && <Dashboard />}
-        {page === "suggestions" && <Suggestions />}
-        {page === "rti" && <RTI />}
-        {page === "account" && <Account user={user} token={token} setUser={setUser} setToken={setToken} setPage={setPage} />}
+        {page === "suggestions" && <Suggestions t={t} />}
+        {page === "rti" && <RTI t={t} />}
+        {page === "vision" && <VisionAnalysis t={t} />}
+        {page === "account" && <Account t={t} user={user} token={token} setUser={setUser} setToken={setToken} setPage={setPage} />}
       </main>
     </div>
   )
@@ -42,10 +156,10 @@ export default function App() {
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function Dashboard() {
   const stats = [
-    { num: "2,847", label: "Suggestions Filed", color: "#FF6B1A" },
-    { num: "68%", label: "Issues Resolved", color: "#128807" },
-    { num: "341", label: "RTIs Filed", color: "#0D1B3E" },
-    { num: "4.2 days", label: "Avg Response Time", color: "#D4A017" },
+    { num: "2,847", label: t.suggestionsFiled, color: "#FF6B1A" },
+    { num: "68%", label: t.issuesResolved, color: "#128807" },
+    { num: "341", label: t.rtisFiled, color: "#0D1B3E" },
+    { num: "4.2 days", label: t.avgResponse, color: "#D4A017" },
   ]
   const issues = [
     { label: "Road & Infrastructure", val: 38, color: "#E85D24" },
@@ -56,8 +170,8 @@ function Dashboard() {
   ]
   return (
     <div>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "4px" }}>Civic Overview — Rohtak, Haryana</h1>
-      <p style={{ color: "#6B7280", marginBottom: "1.5rem", fontSize: "0.9rem" }}>Real-time snapshot of citizen activity</p>
+      <h1 style={{ fontSize: "1.5rem", fontWeight: "700" }}>{t.publicSuggestions}</h1>
+      <p style={{ color: "#6B7280", fontSize: "0.9rem" }}>{t.submitUpvote}</p>
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
@@ -71,8 +185,7 @@ function Dashboard() {
 
       {/* Chart */}
       <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>Issues by Category</h2>
-        {issues.map(i => (
+      <h2 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>{t.issuesByCategory}</h2>        {issues.map(i => (
           <div key={i.label} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
             <div style={{ minWidth: "160px", fontSize: "0.82rem", fontWeight: "500" }}>{i.label}</div>
             <div style={{ flex: 1, height: "10px", background: "#F3F4F6", borderRadius: "5px", overflow: "hidden" }}>
@@ -87,7 +200,7 @@ function Dashboard() {
 }
 
 // ── SUGGESTIONS ───────────────────────────────────────────────────────────────
-function Suggestions() {
+function Suggestions({t}) {
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState("")
   const [category, setCategory] = useState("")
