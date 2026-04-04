@@ -1,7 +1,6 @@
 import { useState } from "react"
 
 const API = "https://janseva-backend.onrender.com"
-
 let currentLang = "en"
 
 const translations = {
@@ -28,7 +27,7 @@ const translations = {
     verifiedCitizen: "Verified Citizen ✅", profileDetails: "Profile Details",
     signOut: "Sign Out", yourActivity: "Your Activity", suggestionsFiled2: "Suggestions Filed",
     urbanTitle: "🏙 AI Urban Planning Vision",
-    urbanSub: "Upload a photo of any area — AI will analyze and suggest what to build or improve",
+    urbanSub: "Upload a photo of any area — AI will analyze and suggest what to build",
     uploadPhoto: "Click to upload a photo", location: "Location / Area Name",
     yourQuestion: "Your Question (optional)", analyzeAi: "🤖 Analyze with AI",
     aiPlanningReport: "🤖 AI Planning Report", download: "⬇ Download Report",
@@ -46,9 +45,9 @@ const translations = {
     submitIssue: "नागरिक समस्या दर्ज करें", category: "श्रेणी", issueTitle: "समस्या का शीर्षक",
     description: "विवरण", submit: "जमा करें", aiAnalyze: "🤖 AI विश्लेषण",
     aiAnalysis: "AI विश्लेषण", fileRtiTitle: "RTI आवेदन दर्ज करें",
-    fileRtiSub: "AI आपका आधिकारिक RTI तैयार करेगा और सही विभाग को भेजेगा",
+    fileRtiSub: "AI आपका आधिकारिक RTI तैयार करेगा",
     yourName: "आपका पूरा नाम", department: "विभाग (वैकल्पिक)",
-    whatToKnow: "आप क्या जानना चाहते हैं? (Hindi या English में लिखें)",
+    whatToKnow: "आप क्या जानना चाहते हैं?",
     generateRti: "🤖 RTI मसौदा तैयार करें", fileThis: "✅ यह RTI दर्ज करें",
     edit: "← संपादित करें", rtiSuccess: "RTI सफलतापूर्वक दर्ज हुई!",
     rtiExpected: "RTI अधिनियम 2005 के अनुसार 30 दिनों में उत्तर अपेक्षित",
@@ -60,12 +59,12 @@ const translations = {
     profileDetails: "प्रोफ़ाइल विवरण", signOut: "साइन आउट",
     yourActivity: "आपकी गतिविधि", suggestionsFiled2: "सुझाव दर्ज",
     urbanTitle: "🏙 AI शहरी नियोजन दृष्टि",
-    urbanSub: "किसी भी क्षेत्र की फ़ोटो अपलोड करें — AI विश्लेषण करेगा",
+    urbanSub: "फ़ोटो अपलोड करें — AI विश्लेषण करेगा",
     uploadPhoto: "फ़ोटो अपलोड करने के लिए क्लिक करें",
     location: "स्थान / क्षेत्र का नाम", yourQuestion: "आपका प्रश्न (वैकल्पिक)",
     analyzeAi: "🤖 AI से विश्लेषण करें", aiPlanningReport: "🤖 AI नियोजन रिपोर्ट",
     download: "⬇ रिपोर्ट डाउनलोड करें", analyzingImage: "AI छवि की जांच कर रहा है...",
-    uploadFirst: "AI की सिफारिशें देखने के लिए छवि अपलोड करें और विश्लेषण करें",
+    uploadFirst: "AI की सिफारिशें देखने के लिए छवि अपलोड करें",
   }
 }
 
@@ -106,7 +105,7 @@ export default function App() {
         {page === "suggestions" && <Suggestions />}
         {page === "rti" && <RTI />}
         {page === "vision" && <VisionAnalysis />}
-        {page === "account" && <Account user={user} token={token} setUser={setUser} setToken={setToken} setPage={setPage} />}
+        {page === "account" && (user && user.is_admin ? <AdminDashboard user={user} setUser={setUser} setToken={setToken} /> : <Account user={user} token={token} setUser={setUser} setToken={setToken} setPage={setPage} />)}
       </main>
     </div>
   )
@@ -151,6 +150,211 @@ function Dashboard() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+function AdminDashboard({ user, setUser, setToken }) {
+  const [tab, setTab] = useState("overview")
+  const [suggestions, setSuggestions] = useState([])
+  const [rtis, setRtis] = useState([])
+  const [users, setUsers] = useState([])
+  const [stats, setStats] = useState(null)
+  const [loaded, setLoaded] = useState(false)
+  const [replyText, setReplyText] = useState({})
+
+  const load = async () => {
+    try {
+      const [s, r, u, st] = await Promise.all([
+        fetch(`${API}/admin/suggestions`).then(x => x.json()),
+        fetch(`${API}/admin/rtis`).then(x => x.json()),
+        fetch(`${API}/admin/users`).then(x => x.json()),
+        fetch(`${API}/admin/stats`).then(x => x.json()),
+      ])
+      setSuggestions(s); setRtis(r); setUsers(u); setStats(st)
+      setLoaded(true)
+    } catch { alert("Could not load admin data") }
+  }
+
+  if (!loaded) { load(); return <div style={{ textAlign: "center", padding: "3rem" }}>Loading admin data...</div> }
+
+  const updateStatus = async (id, status) => {
+    await fetch(`${API}/admin/update-status`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ suggestion_id: id, status })
+    })
+    load()
+  }
+
+  const replyRTI = async (id) => {
+    await fetch(`${API}/admin/reply-rti`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rti_id: id, reply: replyText[id] || "Your RTI has been acknowledged." })
+    })
+    load()
+  }
+
+  const logout = () => { setUser(null); setToken(null); localStorage.removeItem("token") }
+
+  const statusColor = { "Open": "#F59E0B", "Under Review": "#3B82F6", "Resolved": "#16A34A", "Filed": "#8B5CF6", "Replied": "#16A34A" }
+  const tabs = ["overview", "issues", "rtis", "users"]
+
+  return (
+    <div>
+      {/* Admin Header */}
+      <div style={{ background: "linear-gradient(135deg,#0D1B3E,#1A2E5A)", borderRadius: "12px", padding: "1.5rem", marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.6)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "1px" }}>Admin Dashboard</div>
+          <div style={{ color: "#fff", fontSize: "1.2rem", fontWeight: "700" }}>👮 {user.full_name}</div>
+          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem" }}>Government Official · JanSeva Admin</div>
+        </div>
+        <button onClick={logout} style={{ padding: "8px 16px", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "8px", color: "#fff", cursor: "pointer", fontSize: "0.82rem" }}>Sign Out</button>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "1.5rem" }}>
+        {tabs.map(t => (
+          <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 18px", borderRadius: "8px", border: "none", cursor: "pointer", background: tab === t ? "#FF6B1A" : "#fff", color: tab === t ? "#fff" : "#6B7280", fontWeight: "600", fontSize: "0.85rem", border: "1px solid #E5E0D5" }}>
+            {t === "overview" ? "📊 Overview" : t === "issues" ? "💬 Issues" : t === "rtis" ? "📋 RTIs" : "👥 Users"}
+          </button>
+        ))}
+      </div>
+
+      {/* Overview Tab */}
+      {tab === "overview" && stats && (
+        <div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
+            {[
+              { num: stats.total_suggestions, label: "Total Issues", color: "#FF6B1A" },
+              { num: stats.open, label: "Open", color: "#F59E0B" },
+              { num: stats.under_review, label: "Under Review", color: "#3B82F6" },
+              { num: stats.resolved, label: "Resolved", color: "#16A34A" },
+            ].map(s => (
+              <div key={s.label} style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.2rem", borderLeft: `4px solid ${s.color}` }}>
+                <div style={{ fontSize: "2rem", fontWeight: "700" }}>{s.num}</div>
+                <div style={{ fontSize: "0.75rem", color: "#6B7280", marginTop: "4px" }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
+              <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>📋 RTI Summary</h3>
+              <div style={{ fontSize: "2rem", fontWeight: "700", color: "#0D1B3E" }}>{stats.total_rtis}</div>
+              <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>Total RTIs Filed</div>
+            </div>
+            <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
+              <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>👥 Citizens</h3>
+              <div style={{ fontSize: "2rem", fontWeight: "700", color: "#0D1B3E" }}>{users.length}</div>
+              <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>Registered Users</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Issues Tab */}
+      {tab === "issues" && (
+        <div>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "1rem" }}>All Citizen Issues ({suggestions.length})</h2>
+          {suggestions.map(s => (
+            <div key={s.id} style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.2rem", marginBottom: "1rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                <div>
+                  <div style={{ fontWeight: "600", fontSize: "0.95rem" }}>{s.title}</div>
+                  <div style={{ fontSize: "0.75rem", color: "#6B7280", marginTop: "2px" }}>📍 {s.location} · {s.category} · 👍 {s.votes} votes · {s.date}</div>
+                </div>
+                <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "0.7rem", fontWeight: "600", background: s.status === "Resolved" ? "#D1FAE5" : s.status === "Under Review" ? "#DBEAFE" : "#FEF3C7", color: statusColor[s.status] }}>
+                  {s.status}
+                </span>
+              </div>
+              <div style={{ fontSize: "0.82rem", color: "#4B5563", marginBottom: "10px" }}>{s.body}</div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button onClick={() => updateStatus(s.id, "Under Review")} style={{ padding: "5px 12px", background: "#DBEAFE", color: "#1E40AF", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.75rem", fontWeight: "600" }}>
+                  Mark Under Review
+                </button>
+                <button onClick={() => updateStatus(s.id, "Resolved")} style={{ padding: "5px 12px", background: "#D1FAE5", color: "#065F46", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.75rem", fontWeight: "600" }}>
+                  Mark Resolved ✅
+                </button>
+                <button onClick={() => updateStatus(s.id, "Open")} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.75rem", fontWeight: "600" }}>
+                  Reopen
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* RTIs Tab */}
+      {tab === "rtis" && (
+        <div>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "1rem" }}>All RTI Applications ({rtis.length})</h2>
+          {rtis.map(r => (
+            <div key={r.id} style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.2rem", marginBottom: "1rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                <div>
+                  <div style={{ fontWeight: "600", fontSize: "0.85rem", color: "#FF6B1A" }}>{r.reference_id}</div>
+                  <div style={{ fontWeight: "600", fontSize: "0.95rem", marginTop: "2px" }}>{r.name}</div>
+                  <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>{r.department} · {r.date}</div>
+                </div>
+                <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "0.7rem", fontWeight: "600", background: r.status === "Replied" ? "#D1FAE5" : "#EDE9FE", color: r.status === "Replied" ? "#065F46" : "#5B21B6" }}>
+                  {r.status}
+                </span>
+              </div>
+              <div style={{ fontSize: "0.82rem", color: "#4B5563", marginBottom: "10px", background: "#F9F5EE", padding: "8px 12px", borderRadius: "6px" }}>
+                <strong>Query:</strong> {r.query}
+              </div>
+              {r.status !== "Replied" && (
+                <div>
+                  <textarea
+                    placeholder="Type your official reply here..."
+                    value={replyText[r.id] || ""}
+                    onChange={e => setReplyText({ ...replyText, [r.id]: e.target.value })}
+                    rows={2}
+                    style={{ width: "100%", padding: "8px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.82rem", resize: "vertical", marginBottom: "8px" }}
+                  />
+                  <button onClick={() => replyRTI(r.id)} style={{ padding: "6px 14px", background: "#128807", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.78rem", fontWeight: "600" }}>
+                    Send Reply ✅
+                  </button>
+                </div>
+              )}
+              {r.status === "Replied" && <div style={{ fontSize: "0.78rem", color: "#16A34A", fontWeight: "600" }}>✅ Reply sent</div>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Users Tab */}
+      {tab === "users" && (
+        <div>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "1rem" }}>Registered Citizens ({users.length})</h2>
+          <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", overflow: "hidden" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ background: "#F9F5EE" }}>
+                  {["Name", "Email", "Mobile", "District", "Role", "Joined"].map(h => (
+                    <th key={h} style={{ padding: "10px 14px", fontSize: "0.78rem", fontWeight: "600", color: "#6B7280", textAlign: "left", borderBottom: "1px solid #E5E0D5" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {users.map(u => (
+                  <tr key={u.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                    <td style={{ padding: "10px 14px", fontSize: "0.82rem", fontWeight: "500" }}>{u.full_name}</td>
+                    <td style={{ padding: "10px 14px", fontSize: "0.82rem", color: "#6B7280" }}>{u.email}</td>
+                    <td style={{ padding: "10px 14px", fontSize: "0.82rem", color: "#6B7280" }}>{u.mobile}</td>
+                    <td style={{ padding: "10px 14px", fontSize: "0.82rem", color: "#6B7280" }}>{u.district}</td>
+                    <td style={{ padding: "10px 14px" }}>
+                      <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.68rem", fontWeight: "600", background: u.is_admin ? "#DBEAFE" : "#F3F4F6", color: u.is_admin ? "#1E40AF" : "#6B7280" }}>
+                        {u.is_admin ? "Admin" : "Citizen"}
+                      </span>
+                    </td>
+                    <td style={{ padding: "10px 14px", fontSize: "0.78rem", color: "#6B7280" }}>{u.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -292,8 +496,7 @@ function RTI() {
       body: JSON.stringify({ name, query, department: dept || "Public Works Department, Haryana" })
     })
     const data = await res.json()
-    setDraft(data.rti)
-    setRefId(data.reference_id)
+    setDraft(data.rti); setRefId(data.reference_id)
     setLoading(false)
   }
 
@@ -317,7 +520,7 @@ function RTI() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
           <div>
             <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.yourName}</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Rajesh Kumar" style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }} />
+            <input value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", padding: "9px 12px", border: "1.5px solid #E5E0D5", borderRadius: "8px", fontSize: "0.85rem" }} />
           </div>
           <div>
             <label style={{ fontSize: "0.82rem", fontWeight: "600", display: "block", marginBottom: "6px" }}>{t.department}</label>
@@ -393,10 +596,7 @@ function VisionAnalysis() {
         <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem" }}>
           <div style={{ border: "2px dashed #E5E0D5", borderRadius: "10px", padding: "2rem", textAlign: "center", marginBottom: "1rem", cursor: "pointer", background: "#F9F5EE" }} onClick={() => document.getElementById("img-upload").click()}>
             {preview ? <img src={preview} alt="preview" style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "8px", objectFit: "cover" }} /> : (
-              <div>
-                <div style={{ fontSize: "2.5rem", marginBottom: "8px" }}>📸</div>
-                <div style={{ fontSize: "0.85rem", color: "#6B7280" }}>{t.uploadPhoto}</div>
-              </div>
+              <div><div style={{ fontSize: "2.5rem", marginBottom: "8px" }}>📸</div><div style={{ fontSize: "0.85rem", color: "#6B7280" }}>{t.uploadPhoto}</div></div>
             )}
           </div>
           <input id="img-upload" type="file" accept="image/*" onChange={handleImage} style={{ display: "none" }} />
@@ -508,7 +708,7 @@ function Account({ user, token, setUser, setToken, setPage }) {
       </div>
       <div style={{ background: "#fff", border: "1px solid #E5E0D5", borderRadius: "12px", padding: "1.5rem", marginBottom: "1rem" }}>
         <h3 style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "1rem" }}>{t.profileDetails}</h3>
-        {[{ label: t.email, value: user.email }, { label: t.mobile, value: user.mobile }, { label: t.district, value: user.district }].map(item => (
+        {[{ label: "Email", value: user.email }, { label: "Mobile", value: user.mobile }, { label: "District", value: user.district }].map(item => (
           <div key={item.label} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #F3F4F6" }}>
             <span style={{ fontSize: "0.82rem", color: "#6B7280", fontWeight: "600" }}>{item.label}</span>
             <span style={{ fontSize: "0.82rem", color: "#1F2937" }}>{item.value}</span>
@@ -565,7 +765,7 @@ function Account({ user, token, setUser, setToken, setPage }) {
                 ) : (
                   <>
                     <input style={inp} placeholder="Enter 6-digit OTP" value={otp} onChange={e => setOtp(e.target.value)} />
-                    <button onClick={() => otp === realOtp ? setError("OTP verified! Please register first.") : setError("Wrong OTP")} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>Verify OTP</button>
+                    <button onClick={() => otp === realOtp ? setError("OTP verified!") : setError("Wrong OTP")} style={{ ...btn, background: "#FF6B1A", color: "#fff" }}>Verify OTP</button>
                   </>
                 )}
               </>

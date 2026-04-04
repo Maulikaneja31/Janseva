@@ -16,6 +16,7 @@ class User(Base):
     hashed_password = Column(String)
     district = Column(String, default="Rohtak")
     is_verified = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.now)
 
 class Suggestion(Base):
