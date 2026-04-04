@@ -1,18 +1,18 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import hashlib
+import os
 
 SECRET_KEY = "janseva-secret-key-2026-india"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 def hash_password(password: str):
-    return pwd_context.hash(password)
+    salt = "janseva2026"
+    return hashlib.sha256((password + salt).encode()).hexdigest()
 
 def verify_password(plain_password: str, hashed_password: str):
-    return pwd_context.verify(plain_password, hashed_password)
+    return hash_password(plain_password) == hashed_password
 
 def create_token(data: dict):
     to_encode = data.copy()
