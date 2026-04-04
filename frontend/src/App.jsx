@@ -463,36 +463,32 @@ function Account({ user, token, setUser, setToken, setPage }) {
   const login = async () => {
     if (!email || !password) return setError("Please fill all fields")
     setLoading(true); setError("")
-    try {
-      const res = await fetch(`${API}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      })
-      const data = await res.json()
-      if (!res.ok) return setError(data.detail || "Login failed")
-      setUser(data.user); setToken(data.token)
-      localStorage.setItem("token", data.token)
-      setMode("profile")
-    } catch { setError("Could not connect to server") }
+    const res = await fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    })
+    const data = await res.json()
+    if (!res.ok) { setLoading(false); return setError(data.detail || "Login failed") }
+    setUser(data.user); setToken(data.token)
+    localStorage.setItem("token", data.token)
+    setMode("profile")
     setLoading(false)
   }
 
   const register = async () => {
     if (!fullName || !email || !mobile || !password) return setError("Please fill all fields")
     setLoading(true); setError("")
-    try {
-      const res = await fetch(`${API}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ full_name: fullName, email, mobile, password, district })
-      })
-      const data = await res.json()
-      if (!res.ok) return setError(data.detail || "Registration failed")
-      setUser(data.user); setToken(data.token)
-      localStorage.setItem("token", data.token)
-      setMode("profile")
-    } catch { setError("Could not connect to server") }
+    const res = await fetch(`${API}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ full_name: fullName, email, mobile, password, district })
+    })
+    const data = await res.json()
+    if (!res.ok) { setLoading(false); return setError(data.detail || "Registration failed") }
+    setUser(data.user); setToken(data.token)
+    localStorage.setItem("token", data.token)
+    setMode("profile")
     setLoading(false)
   }
 
