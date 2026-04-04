@@ -6,6 +6,7 @@ export default function App() {
   const [page, setPage] = useState("dashboard")
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
+  fetch(`${API}/`).catch(() => {})
 
   return (
     <div style={{ fontFamily: "sans-serif", minHeight: "100vh", background: "#FDF8F0" }}>
