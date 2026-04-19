@@ -444,3 +444,17 @@ def first_admin_setup(req: MakeAdminRequest, db: Session = Depends(get_db)):
     user.is_admin = True
     db.commit()
     return {"message": f"{user.full_name} is now admin!"}
+    @app.post("/setup/first-admin")
+def first_admin_setup(req: MakeAdminRequest, db: Session = Depends(get_db)):
+    admin_count = db.query(User).filter(User.is_admin == True).count()
+    if admin_count > 0:
+        raise HTTPException(status_code=403, detail="Admin already exists.")
+    user = db.query(User).filter(User.email == req.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    if req.secret != "janseva-admin-2026":
+        raise HTTPException(status_code=403, detail="Wrong secret.")
+    user.is_admin = True
+    db.commit()
+    return {"message": f"{user.full_name} is now admin!"}
+    
