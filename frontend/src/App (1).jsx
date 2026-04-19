@@ -105,7 +105,7 @@ export default function App() {
         {page === "suggestions" && <Suggestions />}
         {page === "rti" && <RTI />}
         {page === "vision" && <VisionAnalysis />}
-        {page === "account" && (user && user.is_admin ? <AdminDashboard user={user} token={token} setUser={setUser} setToken={setToken} /> : <Account user={user} token={token} setUser={setUser} setToken={setToken} setPage={setPage} />)}
+        {page === "account" && (user && user.is_admin ? <AdminDashboard user={user} setUser={setUser} setToken={setToken} /> : <Account user={user} token={token} setUser={setUser} setToken={setToken} setPage={setPage} />)}
       </main>
     </div>
   )
@@ -154,7 +154,7 @@ function Dashboard() {
   )
 }
 
-function AdminDashboard({ user, token, setUser, setToken }) {
+function AdminDashboard({ user, setUser, setToken }) {
   const [tab, setTab] = useState("overview")
   const [suggestions, setSuggestions] = useState([])
   const [rtis, setRtis] = useState([])
@@ -163,26 +163,14 @@ function AdminDashboard({ user, token, setUser, setToken }) {
   const [loaded, setLoaded] = useState(false)
   const [replyText, setReplyText] = useState({})
 
-  // Helper: adds Authorization header to every admin request
-  const authHeaders = {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
-  }
-
   const load = async () => {
     try {
       const [s, r, u, st] = await Promise.all([
-        fetch(`${API}/admin/suggestions`, { headers: authHeaders }).then(x => x.json()),
-        fetch(`${API}/admin/rtis`,        { headers: authHeaders }).then(x => x.json()),
-        fetch(`${API}/admin/users`,       { headers: authHeaders }).then(x => x.json()),
-        fetch(`${API}/admin/stats`,       { headers: authHeaders }).then(x => x.json()),
+        fetch(`${API}/admin/suggestions`).then(x => x.json()),
+        fetch(`${API}/admin/rtis`).then(x => x.json()),
+        fetch(`${API}/admin/users`).then(x => x.json()),
+        fetch(`${API}/admin/stats`).then(x => x.json()),
       ])
-      // If any call returns a 401/403 detail, the response is an error object
-      if (s.detail || r.detail || u.detail || st.detail) {
-        alert("Session expired. Please log in again.")
-        setUser(null); setToken(null); localStorage.removeItem("token")
-        return
-      }
       setSuggestions(s); setRtis(r); setUsers(u); setStats(st)
       setLoaded(true)
     } catch { alert("Could not load admin data") }
@@ -192,7 +180,7 @@ function AdminDashboard({ user, token, setUser, setToken }) {
 
   const updateStatus = async (id, status) => {
     await fetch(`${API}/admin/update-status`, {
-      method: "POST", headers: authHeaders,
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ suggestion_id: id, status })
     })
     load()
@@ -200,7 +188,7 @@ function AdminDashboard({ user, token, setUser, setToken }) {
 
   const replyRTI = async (id) => {
     await fetch(`${API}/admin/reply-rti`, {
-      method: "POST", headers: authHeaders,
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rti_id: id, reply: replyText[id] || "Your RTI has been acknowledged." })
     })
     load()
